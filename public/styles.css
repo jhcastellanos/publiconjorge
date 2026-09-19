@@ -803,30 +803,44 @@ textarea:focus {
 }
 
 .about {
-  padding: 4.5rem 0;
+  padding: 5rem 0;
   background: var(--cream);
-  border-block: 1px solid var(--line);
+  border: 0;
 }
 
-.about-grid {
+.about-card {
   display: grid;
-  gap: 2rem;
+  gap: 1.6rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 1.8rem;
+  padding: 1rem;
+  box-shadow: var(--shadow);
 }
 
 .about-photo {
+  margin: 0;
   min-height: 0;
   background: none;
   border: 0;
 }
 
 .about-photo img {
-  width: min(22rem, 100%);
-  aspect-ratio: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: 50% 18%;
-  border-radius: 50%;
-  box-shadow: var(--shadow);
+  object-position: center 30%;
+  border-radius: 1.25rem;
   display: block;
+}
+
+.about-copy p {
+  color: var(--muted);
+}
+
+.about-copy h2 {
+  margin-bottom: 0.7rem;
 }
 
 .about-socials {
@@ -1014,7 +1028,7 @@ textarea:focus {
   .book-grid,
   .spots,
   .services,
-  .about-grid,
+  .about-card,
   .step-list,
   .step-list--five,
   .field-row,
@@ -1058,10 +1072,15 @@ textarea:focus {
     align-items: stretch;
   }
 
-  .about-grid {
-    grid-template-columns: 0.72fr 1.28fr;
-    align-items: start;
-    gap: 3rem;
+  .about-card {
+    grid-template-columns: 1.05fr 1fr;
+    align-items: center;
+    gap: 2.2rem;
+    padding: 1.15rem 2rem 1.15rem 1.15rem;
+  }
+
+  .about-copy {
+    padding: 0.6rem 0;
   }
 
   .modal__panel {
