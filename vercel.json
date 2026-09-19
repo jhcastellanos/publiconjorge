@@ -9,7 +9,11 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
-      "includeFiles": "server/**"
+      "includeFiles": "{server/**,services.js}"
+    },
+    "api/[...path].js": {
+      "maxDuration": 30,
+      "includeFiles": "{server/**,services.js}"
     }
   }
 }

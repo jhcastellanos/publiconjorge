@@ -29,6 +29,21 @@ const app = express();
 const ROOT = path.join(__dirname, "..");
 const PORT = Number(process.env.PORT || 3000);
 
+app.use((req, _res, next) => {
+  if (!process.env.VERCEL) return next();
+  const current = req.url || "/";
+  const pathOnly = current.split("?")[0];
+  if (pathOnly.startsWith("/api")) return next();
+  const headerPath = req.headers["x-invoke-path"];
+  const query = current.includes("?") ? current.slice(current.indexOf("?")) : "";
+  if (typeof headerPath === "string" && headerPath.startsWith("/api")) {
+    req.url = headerPath.split("?")[0] + query;
+    return next();
+  }
+  req.url = "/api" + (current.startsWith("/") ? current : `/${current}`);
+  next();
+});
+
 const lookupAttempts = new Map();
 
 function stripeClient() {
