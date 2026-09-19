@@ -104,7 +104,7 @@ function salesPinMatches(value) {
 }
 
 function salesPinErrorMessage() {
-  return `El PIN no es correcto. Contacta al equipo de ventas al ${SALES_TEAM_PHONE_DISPLAY} para que te lo proporcionen.`;
+  return `El PIN no es correcto. Contacta al equipo de soporte al ${SALES_TEAM_PHONE_DISPLAY} para que te lo proporcionen.`;
 }
 
 function publicConfig() {

@@ -252,7 +252,7 @@ function checkoutView() {
     <header class="section-head">
       <p class="kicker">Contratación</p>
       <h2>Completa tus datos</h2>
-      <p>Después de aceptar los términos, verificarás el PIN de ventas y continuarás al pago seguro de Stripe.</p>
+      <p>Después de aceptar los términos, verificarás el PIN y continuarás al pago seguro de Stripe.</p>
     </header>
     <div class="checkout-layout">
       <aside class="spot checkout-summary">
@@ -531,7 +531,7 @@ async function submitPin(event) {
   }
   const salesPin = String(pinInput?.value || "").trim();
   if (!/^\d{4}$/.test(salesPin)) {
-    setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de ventas.", true);
+    setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de soporte.", true);
     return;
   }
 

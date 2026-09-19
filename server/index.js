@@ -310,7 +310,7 @@ app.post("/api/checkout", async (req, res) => {
         res,
         429,
         "pin_locked",
-        `Demasiados intentos. Contacta al equipo de ventas al ${SALES_TEAM_PHONE_DISPLAY} para que te proporcionen el PIN.`,
+        `Demasiados intentos. Contacta al equipo de soporte al ${SALES_TEAM_PHONE_DISPLAY} para que te proporcionen el PIN.`,
       );
     }
     return jsonError(res, 403, "pin_invalid", salesPinErrorMessage());
