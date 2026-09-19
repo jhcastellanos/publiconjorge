@@ -5,9 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
-    "build": "node -e \"console.log('No frontend build')\"",
-    "vercel-build": "node -e \"console.log('Static public/ output, no frontend compile')\""
+    "dev": "node --watch server/index.js"
   },
   "engines": {
     "node": "24.x"
