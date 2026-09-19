@@ -60,6 +60,9 @@ function checkoutErrorMessage(error) {
   if (lower.includes("no such price") || lower.includes("no such product")) {
     return "El Price ID no existe en esta cuenta Live de Stripe. STRIPE_PRICE_TIRA y STRIPE_PRICE_VIDEO deben ser price_... del mismo modo Live que la clave.";
   }
+  if (lower.includes("tax_code") || lower.includes("managed payments")) {
+    return "Stripe Managed Payments pide un código fiscal en el producto. Desactívalo en esta sesión o asigna un Product tax code en el producto de Stripe.";
+  }
   if (lower.includes("one_time") || (lower.includes("recurring") && lower.includes("mode"))) {
     return "Ese precio de Stripe no es una suscripción mensual. En el producto, Billing debe ser Recurring / Monthly.";
   }
@@ -314,6 +317,7 @@ app.post("/api/checkout", async (req, res) => {
       success_url: `${publicUrl()}/membership?status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${publicUrl()}/membership?status=cancelled`,
       line_items: [{ price: priceId, quantity: 1 }],
+      managed_payments: { enabled: false },
       metadata: {
         planId,
         planName: plan.name,
