@@ -18,26 +18,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=10" />
+    <link rel="stylesheet" href="./styles.css?v=12" />
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
-
-    <div class="ticker" aria-hidden="true">
-      <div class="ticker__track">
-        <span>En vivo en TikTok</span>
-        <span>Mañanas</span>
-        <span>Algunos días tarde o noche</span>
-        <span>Publicidad para negocios</span>
-        <span>En vivo en TikTok</span>
-        <span>Mañanas</span>
-        <span>Algunos días tarde o noche</span>
-        <span>Publicidad para negocios</span>
-      </div>
-    </div>
 
     <header class="site-header">
       <div class="wrap header-bar">
@@ -100,28 +87,36 @@
             </dl>
           </div>
 
-          <aside class="phone" aria-hidden="true">
-            <div class="phone__bezel">
-              <div class="phone__screen">
-                <div class="live-ui">
-                  <div class="live-ui__top">
-                    <span class="live-badge">LIVE</span>
-                    <span class="live-ui__name">Publi con Jorge</span>
-                  </div>
-                  <div class="live-ui__center">
-                    <p>Buenos días</p>
-                    <strong>Estamos en vivo</strong>
-                  </div>
-                  <div class="chat">
-                    <p><b>Ana</b> Buenos días, Jorge</p>
-                    <p><b>Luis</b> Primera vez en el live</p>
-                    <p><b>María</b> ¿De quién era esa mención?</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <p class="phone__caption">Así se ve un espacio dentro del directo.</p>
+          <aside class="hero-portrait">
+            <img src="./jorge.png" alt="Jorge Castellanos" width="480" height="480" />
+            <p class="hero-portrait__badge"><span class="live-badge">LIVE</span> TikTok</p>
           </aside>
+        </div>
+      </section>
+
+      <section class="features" id="por-que">
+        <div class="wrap features-grid">
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="17" r="1"/></svg>
+            </span>
+            <h3>TikTok Live</h3>
+            <p>Espacios publicitarios integrados en nuestros DIRECTOS y contenido digital.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <h3>Horario de mañana</h3>
+            <p>El eje es la mañana. Algunos días se suma un segundo live por la tarde o la noche.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+            </span>
+            <h3>Tres formatos</h3>
+            <p>Tira publicitaria, video publicitario o landing page con publicidad, según tu negocio.</p>
+          </article>
         </div>
       </section>
 
@@ -196,10 +191,12 @@
 
       <section class="about" id="sobre-mi">
         <div class="wrap about-grid">
-          <div class="about-photo" role="img" aria-label="Espacio reservado para una foto"></div>
-          <div>
+            <div class="about-photo">
+              <img src="./jorge.png" alt="Jorge Castellanos, trader e inversionista" width="320" height="320" />
+            </div>
+            <div>
             <p class="kicker">Sobre mí</p>
-            <h2>Jorge</h2>
+            <h2>Jorge Castellanos</h2>
             <p>
               Soy trader e inversionista dedicado a los mercados financieros y creador
               de contenido con presencia activa en redes sociales.
@@ -213,11 +210,11 @@
               negocios que quieran presentar sus productos o servicios ante nuestra
               audiencia mediante formatos publicitarios integrados dentro de nuestros LIVE.
             </p>
-            <div class="about-socials" aria-label="Redes sociales">
-              <span class="social-slot">TikTok</span>
-              <span class="social-slot">YouTube</span>
-              <span class="social-slot">Instagram</span>
-            </div>
+            <nav class="socials about-socials" aria-label="Redes sociales">
+              <a href="https://www.tiktok.com/@jorgecastellanostrader" target="_blank" rel="noopener noreferrer">TikTok</a>
+              <a href="https://www.youtube.com/@InversionRealconJorge" target="_blank" rel="noopener noreferrer">YouTube</a>
+              <a href="https://www.instagram.com/jorge.hcv" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
           </div>
         </div>
       </section>
@@ -240,6 +237,11 @@
     <footer class="site-footer">
       <div class="wrap footer-bar">
         <p>Publi <em>con Jorge</em></p>
+        <nav class="socials" aria-label="Redes sociales">
+          <a href="https://www.tiktok.com/@jorgecastellanostrader" target="_blank" rel="noopener noreferrer">TikTok</a>
+          <a href="https://www.youtube.com/@InversionRealconJorge" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a href="https://www.instagram.com/jorge.hcv" target="_blank" rel="noopener noreferrer">Instagram</a>
+        </nav>
         <p>
           <a href="/membership">Membresía</a>
           · Publicidad en directos de TikTok. © <span id="year"></span>
