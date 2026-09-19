@@ -29,6 +29,9 @@ const state = {
     phone: "",
   },
   pendingCheckout: null,
+  pinVerified: false,
+  salesPin: "",
+  pendingPinPurpose: "",
 };
 
 function formatMoney(value) {
@@ -56,6 +59,9 @@ function iconFor(id) {
   }
   if (id === "landing") {
     return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11h24M8 16h10M8 20h7" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
+  }
+  if (id === "prueba") {
+    return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 15h24" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="20.5" r="1.6" fill="currentColor"/></svg>`;
   }
   return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="19" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 13v6M24 13v6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
 }
@@ -88,6 +94,31 @@ function setPinStatus(message, isError = false, showSalesHelp = false) {
   }
 }
 
+function openPinModal(purpose) {
+  state.pendingPinPurpose = purpose;
+  if (pinForm) pinForm.reset();
+  setPinStatus("");
+  if (pinSubmit) {
+    pinSubmit.textContent =
+      purpose === "checkout" ? "Verificar y continuar al pago" : "Verificar PIN";
+  }
+  openDialog(pinModal);
+  pinInput?.focus();
+}
+
+function applyPricedPlans(plans) {
+  const byId = Object.fromEntries((plans || []).map((plan) => [plan.id, plan]));
+  if (!state.config) state.config = {};
+  state.config.plans = (state.config.plans || []).map((plan) => ({
+    ...plan,
+    ...(byId[plan.id] || {}),
+  }));
+  if (!state.config.plans.length && plans?.length) {
+    state.config.plans = plans;
+  }
+  state.pinVerified = true;
+}
+
 function openDialog(dialog) {
   if (!dialog) return;
   if (typeof dialog.showModal === "function") dialog.showModal();
@@ -118,15 +149,22 @@ async function api(url, options = {}) {
   return data;
 }
 
+function quoteCallMarkup() {
+  return `
+    <div class="quote-block">
+      <p class="quote-block__label">Cotización</p>
+      <p>Este paquete se cotiza por llamada con el equipo de soporte. No se publica un precio aquí.</p>
+      <a class="btn btn-primary btn-full" href="${salesPhoneHref()}">Llamar al ${escapeHtml(salesPhoneDisplay())}</a>
+    </div>
+  `;
+}
+
 function priceMarkup(plan) {
   if (plan.customPricing) {
-    return `
-      <div class="price-block">
-        <p class="price-block__label">Precio</p>
-        <p class="price-block__custom">${escapeHtml(plan.customPricingLabel)}</p>
-        <p class="price-block__note">${escapeHtml(plan.customPricingNote)}</p>
-      </div>
-    `;
+    return quoteCallMarkup();
+  }
+  if (!state.pinVerified || plan.promotionalPrice == null) {
+    return "";
   }
 
   return `
@@ -153,13 +191,13 @@ function homeView() {
         <p class="service-card__kicker">Ya soy cliente</p>
         <h2>Ya tengo una membresía</h2>
         <p>Verifica tu email para ver el plan, la próxima renovación y cancelar si lo necesitas.</p>
-        <button class="btn btn-ghost btn-full" type="button" data-view="existing">Ya tengo una membresía</button>
+        <button class="btn btn-primary btn-full" type="button" data-view="existing">Ya tengo una membresía</button>
       </article>
       <article class="spot choice-card choice-card--new">
         <p class="service-card__kicker">Nuevo</p>
         <h2>Quiero una membresía</h2>
         <p>Elige un espacio publicitario, acepta los términos y completa el pago mensual.</p>
-        <button class="btn btn-primary btn-full" type="button" data-view="plans">Quiero una membresía</button>
+        <button class="btn btn-light btn-full" type="button" data-view="plans">Quiero una membresía</button>
       </article>
     </div>
   `;
@@ -201,6 +239,11 @@ function plansView() {
     <header class="section-head">
       <p class="kicker">Planes</p>
       <h2>Elige tu espacio publicitario</h2>
+      ${
+        state.pinVerified
+          ? ""
+          : `<p>El precio se muestra después de verificar el PIN que te proporcionó el equipo de soporte.</p>`
+      }
     </header>
     <aside class="notice-block notice-block--soft" role="note">
       <p class="notice-block__label">Renovación y cancelación</p>
@@ -217,7 +260,7 @@ function plansView() {
       ${plans
         .map(
           (plan, index) => `
-        <article class="spot service-card${plan.featured ? " spot--featured service-card--complete" : ""}">
+        <article class="spot service-card${plan.featured && !plan.customPricing ? " spot--featured service-card--complete" : ""}${plan.testOnly ? " service-card--test" : ""}">
           <div class="service-card__top">
             <span class="service-card__icon">${iconFor(plan.id)}</span>
             <p class="spot__num">0${index + 1}</p>
@@ -227,12 +270,7 @@ function plansView() {
           <p>${escapeHtml(plan.shortDescription)}</p>
           ${bundleMarkup(plan.bundle)}
           <ul>${(plan.membershipFeatures || plan.features || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-          ${priceMarkup(plan)}
-          ${
-            plan.customPricing
-              ? `<button class="btn btn-primary" type="button" data-open-lead="${plan.id}">${escapeHtml(plan.membershipCtaLabel || "Solicitar cotización")}</button>`
-              : `<button class="btn btn-primary" type="button" data-select-plan="${plan.id}">${escapeHtml(plan.membershipCtaLabel || "Seleccionar")}</button>`
-          }
+          ${plan.customPricing ? quoteCallMarkup() : `${priceMarkup(plan)}<button class="btn btn-primary" type="button" data-select-plan="${plan.id}">${escapeHtml(plan.membershipCtaLabel || "Seleccionar")}</button>`}
         </article>
       `,
         )
@@ -252,7 +290,7 @@ function checkoutView() {
     <header class="section-head">
       <p class="kicker">Contratación</p>
       <h2>Completa tus datos</h2>
-      <p>Después de aceptar los términos, verificarás el PIN y continuarás al pago seguro de Stripe.</p>
+      <p>Después de aceptar los términos, continuarás al pago seguro de Stripe.</p>
     </header>
     <div class="checkout-layout">
       <aside class="spot checkout-summary">
@@ -441,6 +479,11 @@ async function loadConfig() {
       stripeConfigured: false,
       plans: (window.PUBLI_SERVICES || []).map((plan) => ({
         ...plan,
+        regularPrice: null,
+        promotionalPrice: null,
+        priceNote: null,
+        customPricingLabel: null,
+        customPricingNote: null,
         stripeReady: false,
       })),
     };
@@ -516,20 +559,19 @@ async function submitCheckout(event) {
   }
 
   state.pendingCheckout = payload;
-  if (pinForm) pinForm.reset();
-  setPinStatus("");
-  openDialog(pinModal);
-  pinInput?.focus();
+  if (state.pinVerified && state.salesPin) {
+    state.pendingPinPurpose = "checkout";
+    await submitPin({ preventDefault() {}, fromStoredPin: true });
+    return;
+  }
+  openPinModal("checkout");
 }
 
 async function submitPin(event) {
   event.preventDefault();
-  const payload = state.pendingCheckout;
-  if (!payload) {
-    setPinStatus("Completa tus datos antes de continuar al pago.", true);
-    return;
-  }
-  const salesPin = String(pinInput?.value || "").trim();
+  const salesPin = event.fromStoredPin
+    ? state.salesPin
+    : String(pinInput?.value || "").trim();
   if (!/^\d{4}$/.test(salesPin)) {
     setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de soporte.", true);
     return;
@@ -537,12 +579,33 @@ async function submitPin(event) {
 
   if (pinSubmit) pinSubmit.disabled = true;
   try {
+    if (state.pendingPinPurpose !== "checkout") {
+      const data = await api("/api/pin/verify", {
+        method: "POST",
+        body: JSON.stringify({ salesPin }),
+      });
+      state.salesPin = salesPin;
+      applyPricedPlans(data.plans);
+      closeDialog(pinModal);
+      showView("plans");
+      setStatus("");
+      return;
+    }
+
+    const payload = state.pendingCheckout;
+    if (!payload) {
+      setPinStatus("Completa tus datos antes de continuar al pago.", true);
+      return;
+    }
     const data = await api("/api/checkout", {
       method: "POST",
       body: JSON.stringify({ ...payload, salesPin }),
     });
     window.location.href = data.url;
   } catch (error) {
+    if (event.fromStoredPin) {
+      openPinModal("checkout");
+    }
     setPinStatus(error.message, true, error.code === "pin_invalid" || error.code === "pin_locked");
   } finally {
     if (pinSubmit) pinSubmit.disabled = false;
@@ -634,8 +697,13 @@ async function confirmCancel() {
 app?.addEventListener("click", (event) => {
   const viewBtn = event.target.closest("[data-view]");
   if (viewBtn) {
+    const view = viewBtn.getAttribute("data-view");
     setStatus("");
-    showView(viewBtn.getAttribute("data-view"));
+    if (view === "plans" && !state.pinVerified) {
+      openPinModal("unlock-prices");
+      return;
+    }
+    showView(view);
     return;
   }
   const planBtn = event.target.closest("[data-select-plan]");

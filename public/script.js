@@ -1,7 +1,9 @@
 const CONTACT_EMAIL = "inversionrealconjorge@gmail.com";
 const LEADS_STORAGE_KEY = "publi-con-jorge-leads";
+const SUPPORT_PHONE = "5612154451";
+const SUPPORT_PHONE_DISPLAY = "561-215-4451";
 
-const services = window.PUBLI_SERVICES || [];
+const services = (window.PUBLI_SERVICES || []).filter((item) => !item.testOnly);
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileNav = document.getElementById("menu-movil");
 const yearEl = document.getElementById("year");
@@ -19,16 +21,17 @@ if (yearEl) {
   yearEl.textContent = String(new Date().getFullYear());
 }
 
-function formatMoney(value) {
-  return `$${Number(value).toLocaleString("en-US")}/mes`;
-}
-
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function supportCallMarkup(label, extraClass = "") {
+  const cls = extraClass ? ` ${extraClass}` : "";
+  return `<a class="btn btn-primary${cls}" href="tel:${SUPPORT_PHONE}">${escapeHtml(label || "Llamar para cotizar")}</a>`;
 }
 
 function serviceById(id) {
@@ -42,6 +45,9 @@ function iconFor(id) {
   if (id === "landing") {
     return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11h24M8 16h10M8 20h7" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
   }
+  if (id === "prueba") {
+    return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 15h24" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="20.5" r="1.6" fill="currentColor"/></svg>`;
+  }
   return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="19" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 13v6M24 13v6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
 }
 
@@ -52,28 +58,6 @@ function listMarkup(items) {
 function bundleMarkup(bundle) {
   if (!bundle?.length) return "";
   return `<p class="bundle">${bundle.map((item) => `<span>${escapeHtml(item)}</span>`).join('<span class="bundle__plus">+</span>')}</p>`;
-}
-
-function priceMarkup(service) {
-  if (service.customPricing) {
-    return `
-      <div class="price-block">
-        <p class="price-block__label">Precio</p>
-        <p class="price-block__custom">${escapeHtml(service.customPricingLabel)}</p>
-        <p class="price-block__note">${escapeHtml(service.customPricingNote)}</p>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="price-block">
-      <p class="price-block__label">Precio regular</p>
-      <p class="price-block__regular"><s>${formatMoney(service.regularPrice)}</s></p>
-      <p class="price-block__promo-label">Precio promocional</p>
-      <p class="price-block__promo">${formatMoney(service.promotionalPrice)}</p>
-      ${service.priceNote ? `<p class="price-block__note">${escapeHtml(service.priceNote)}</p>` : ""}
-    </div>
-  `;
 }
 
 function renderCards() {
@@ -144,7 +128,11 @@ function renderCards() {
         ${listMarkup(service.features)}
         <div class="service-card__actions">
           <button class="btn btn-ghost" type="button" data-open-detail="${service.id}">Ver más</button>
-          <button class="btn btn-primary" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>
+          ${
+            service.customPricing
+              ? supportCallMarkup(service.ctaLabel)
+              : `<button class="btn btn-primary" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>`
+          }
         </div>
       </article>
     `,
@@ -173,8 +161,11 @@ function renderServiceDetail(service) {
     <h3>Qué incluye</h3>
     ${bundleMarkup(service.bundle)}
     ${listMarkup(service.includes)}
-    ${priceMarkup(service)}
-    <button class="btn btn-primary btn-full" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>
+    ${
+      service.customPricing
+        ? `<p class="modal__note">Este paquete se cotiza por llamada con el equipo de soporte. Llama al ${escapeHtml(SUPPORT_PHONE_DISPLAY)}.</p>${supportCallMarkup(service.ctaLabel, "btn-full")}`
+        : `<button class="btn btn-primary btn-full" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>`
+    }
   `;
 }
 

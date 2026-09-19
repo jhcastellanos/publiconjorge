@@ -66,25 +66,29 @@ function planFromPriceId(priceId) {
   return PUBLI_SERVICES.find((item) => stripePriceId(item) === priceId) || null;
 }
 
-function publicPlans() {
-  return PUBLI_SERVICES.map((plan) => ({
-    id: plan.id,
-    name: plan.name,
-    kicker: plan.kicker,
-    shortDescription: plan.shortDescription,
-    membershipFeatures: plan.membershipFeatures || plan.features,
-    bundle: plan.bundle || [],
-    regularPrice: plan.regularPrice ?? null,
-    promotionalPrice: plan.promotionalPrice ?? null,
-    customPricing: Boolean(plan.customPricing),
-    customPricingLabel: plan.customPricingLabel || null,
-    customPricingNote: plan.customPricingNote || null,
-    billing: plan.billing,
-    membershipCtaLabel: plan.membershipCtaLabel,
-    featured: Boolean(plan.featured),
-    stripeReady: Boolean(stripePriceId(plan)),
-    priceNote: plan.priceNote || null,
-  }));
+function publicPlans({ includePrices = false } = {}) {
+  return PUBLI_SERVICES.map((plan) => {
+    const item = {
+      id: plan.id,
+      name: plan.name,
+      kicker: plan.kicker,
+      shortDescription: plan.shortDescription,
+      membershipFeatures: plan.membershipFeatures || plan.features,
+      bundle: plan.bundle || [],
+      customPricing: Boolean(plan.customPricing),
+      billing: plan.billing,
+      membershipCtaLabel: plan.membershipCtaLabel,
+      featured: Boolean(plan.featured),
+      testOnly: Boolean(plan.testOnly),
+      stripeReady: Boolean(stripePriceId(plan)),
+    };
+    if (includePrices && !plan.customPricing) {
+      item.regularPrice = plan.regularPrice ?? null;
+      item.promotionalPrice = plan.promotionalPrice ?? null;
+      item.priceNote = plan.priceNote || null;
+    }
+    return item;
+  });
 }
 
 const SALES_TEAM_PHONE = "5612154451";
