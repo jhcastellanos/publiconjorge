@@ -7,10 +7,10 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "build": "node -e \"console.log('No frontend build')\"",
-    "vercel-build": "node -e \"console.log('No Next.js build')\""
+    "vercel-build": "node -e \"console.log('Static public/ output, no frontend compile')\""
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   },
   "dependencies": {
     "dotenv": "^16.5.0",

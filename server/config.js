@@ -45,7 +45,8 @@ function verifyToken(token) {
 
 function isStripeConfigured() {
   const key = process.env.STRIPE_SECRET_KEY || "";
-  return Boolean(key) && !key.includes("reemplaza") && key.startsWith("sk_");
+  if (!key || key.includes("reemplaza")) return false;
+  return key.startsWith("sk_") || key.startsWith("rk_");
 }
 
 function stripePriceId(plan) {
