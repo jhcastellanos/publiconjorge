@@ -1,19 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "buildCommand": "",
-  "installCommand": "npm install",
   "rewrites": [
-    { "source": "/membership", "destination": "/membership.html" }
-  ],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30,
-      "includeFiles": "{server/**,services.js}"
-    },
-    "api/[...path].js": {
-      "maxDuration": 30,
-      "includeFiles": "{server/**,services.js}"
-    }
-  }
+    { "source": "/membership", "destination": "/membership.html" },
+    { "source": "/api/:path*", "destination": "/api" }
+  ]
 }
