@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Membresía — Publi con Jorge</title>
+    <meta
+      name="description"
+      content="Contrata o gestiona tu membresía publicitaria en los LIVE de Publi con Jorge."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=9" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track">
+        <span>Membresía publicitaria</span>
+        <span>Renovación automática mensual</span>
+        <span>Cancela desde esta sección</span>
+        <span>Membresía publicitaria</span>
+        <span>Renovación automática mensual</span>
+        <span>Cancela desde esta sección</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="wrap header-bar">
+        <a class="brand" href="/">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="brand__name">Publi <em>con Jorge</em></span>
+        </a>
+        <nav class="nav" aria-label="Principal">
+          <a href="/#espacios">Espacios</a>
+          <a href="/#horarios">Horarios</a>
+          <a href="/#como-funciona">Cómo funciona</a>
+          <a href="/#sobre-mi">Sobre mí</a>
+          <a class="nav__membership" href="/membership" aria-current="page">Membresía</a>
+          <button class="nav__cta" type="button" data-open-lead>Contactar</button>
+        </nav>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-movil">
+          Menú
+        </button>
+      </div>
+      <div id="menu-movil" class="mobile-nav" hidden>
+        <a class="mobile-nav__membership" href="/membership" aria-current="page">Membresía</a>
+        <a href="/#espacios">Espacios</a>
+        <a href="/#horarios">Horarios</a>
+        <a href="/#como-funciona">Cómo funciona</a>
+        <a href="/#sobre-mi">Sobre mí</a>
+        <button type="button" data-open-lead>Contactar</button>
+      </div>
+    </header>
+
+    <main id="contenido" class="membership-page">
+      <section class="hero membership-hero">
+        <div class="wrap">
+          <p class="kicker">Membresía</p>
+          <h1>Gestiona o crea tu membresía</h1>
+          <p class="lede">
+            Contrata uno de nuestros espacios publicitarios o administra una membresía existente.
+          </p>
+        </div>
+      </section>
+
+      <section class="band">
+        <div class="wrap">
+          <aside class="notice-block" role="note">
+            <p class="notice-block__label">Importante sobre la cancelación</p>
+            <p>
+              Las membresías se renuevan automáticamente mientras permanezcan activas. Si deseas
+              finalizar tu servicio, es responsabilidad del negocio cancelar su membresía desde la
+              sección Membresía de este sitio web.
+            </p>
+            <p>
+              Publi con Jorge no realiza cancelaciones manuales por solicitud informal y no se
+              responsabiliza por renovaciones producidas porque el cliente no haya completado
+              correctamente el proceso de cancelación.
+            </p>
+            <p>
+              Mientras la membresía permanezca activa y los pagos continúen procesándose, el
+              servicio publicitario continuará activo. La falta de cancelación por parte del cliente
+              no dará derecho automáticamente a reembolso.
+            </p>
+          </aside>
+
+          <div id="membership-app">
+            <p class="membership-status" id="app-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-bar">
+        <p>Publi <em>con Jorge</em></p>
+        <p>
+          <a href="/">Inicio</a>
+          ·
+          <button type="button" class="footer-link" data-open-terms>Términos y Condiciones</button>
+          ·
+          <a href="/api/terms/pdf">Descargar PDF</a>
+          · © <span id="year"></span>
+        </p>
+      </div>
+    </footer>
+
+    <dialog class="modal" id="terms-modal" aria-labelledby="terms-modal-title">
+      <div class="modal__panel">
+        <button class="modal__close" type="button" data-close-modal>Cerrar</button>
+        <div id="terms-modal-body"></div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="cancel-modal" aria-labelledby="cancel-modal-title">
+      <div class="modal__panel">
+        <button class="modal__close" type="button" data-close-modal>Cerrar</button>
+        <p class="kicker">Cancelar</p>
+        <h2 id="cancel-modal-title">¿Seguro que deseas cancelar tu membresía?</h2>
+        <p class="modal__intro">
+          Tu publicidad continuará activa hasta finalizar el período que ya has pagado. Después de
+          esa fecha, la membresía no volverá a renovarse.
+        </p>
+        <p id="cancel-modal-date"></p>
+        <div class="membership-actions">
+          <button class="btn btn-primary btn-full" type="button" data-close-modal>Mantener mi membresía</button>
+          <button class="btn btn-danger btn-full" type="button" id="confirm-cancel">Confirmar cancelación</button>
+        </div>
+        <p class="form-status" id="cancel-status" role="status" aria-live="polite"></p>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="lead-modal" aria-labelledby="lead-modal-title">
+      <div class="modal__panel">
+        <button class="modal__close" type="button" data-close-modal>Cerrar</button>
+        <div id="lead-modal-body">
+          <div id="lead-form-view">
+            <p class="kicker">Contacto</p>
+            <h2 id="lead-modal-title">Cuéntanos sobre tu negocio</h2>
+            <p class="modal__intro">
+              Completa estos datos y el equipo te contactará para ver qué espacio encaja mejor.
+            </p>
+            <form class="form" id="lead-form" novalidate>
+              <div class="field">
+                <label for="nombre">Nombre de contacto *</label>
+                <input id="nombre" name="nombre" type="text" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="negocio">Nombre del negocio</label>
+                <input id="negocio" name="negocio" type="text" autocomplete="organization" />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="telefono">Número de teléfono *</label>
+                  <input id="telefono" name="telefono" type="tel" autocomplete="tel" required />
+                </div>
+                <div class="field">
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" autocomplete="email" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="servicio">Servicio de interés *</label>
+                <select id="servicio" name="servicio" required>
+                  <option value="">Elige un espacio</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="mensaje">Cuéntanos brevemente sobre tu negocio</label>
+                <textarea id="mensaje" name="mensaje" rows="3"></textarea>
+              </div>
+              <button class="btn btn-primary btn-full" type="submit">Enviar solicitud</button>
+              <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+          <div class="form-success" id="lead-success" hidden>
+            <h3 tabindex="-1">¡Gracias por tu interés!</h3>
+            <p>
+              Nuestro equipo se pondrá en contacto contigo para conocer mejor tu negocio y
+              ayudarte a encontrar la opción publicitaria que mejor se adapte a tus necesidades.
+            </p>
+            <button class="btn btn-ghost" type="button" data-close-modal>Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="./services.js?v=9"></script>
+    <script src="./script.js?v=9"></script>
+    <script src="./membership.js?v=10"></script>
+  </body>
+</html>
