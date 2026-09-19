@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { PUBLI_SERVICES } = require("../services");
+const { PUBLI_SERVICES } = require("../public/services");
 const { TERMS_VERSION } = require("./terms");
 
 function publicUrl() {

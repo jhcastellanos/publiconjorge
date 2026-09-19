@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "node -e \"console.log('Skipping Next.js; this is a static site with API routes')\"",
+  "buildCommand": "node -e \"console.log('Using public/ as static output')\"",
+  "outputDirectory": "public",
   "installCommand": "npm install",
   "rewrites": [
     { "source": "/membership", "destination": "/membership.html" },

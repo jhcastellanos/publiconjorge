@@ -608,10 +608,10 @@ async function handleStripeEvent(stripe, event) {
 }
 
 app.get("/membership", (_req, res) => {
-  res.sendFile(path.join(ROOT, "membership.html"));
+  res.sendFile(path.join(ROOT, "public", "membership.html"));
 });
 
-app.use(express.static(ROOT, { dotfiles: "deny", index: "index.html" }));
+app.use(express.static(path.join(ROOT, "public"), { dotfiles: "deny", index: "index.html" }));
 
 module.exports = app;
 
