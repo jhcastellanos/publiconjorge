@@ -44,7 +44,7 @@ function verifyToken(token) {
 }
 
 function isStripeConfigured() {
-  const key = process.env.STRIPE_SECRET_KEY || "";
+  const key = String(process.env.STRIPE_SECRET_KEY || "").trim();
   if (!key || key.includes("reemplaza")) return false;
   return key.startsWith("sk_") || key.startsWith("rk_");
 }

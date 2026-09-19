@@ -10,7 +10,7 @@
     "vercel-build": "node -e \"console.log('Static public/ output, no frontend compile')\""
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
