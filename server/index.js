@@ -63,7 +63,7 @@ function checkoutErrorMessage(error) {
     return "La clave de Stripe no tiene permiso para Checkout. En Developers → API keys usa una Secret key (sk_live_) o una Restricted key con Checkout Sessions: Write, Customers: Write, Prices: Read y Products: Read.";
   }
   if (lower.includes("no such price") || lower.includes("no such product")) {
-    return "El Price ID no existe en esta cuenta de Stripe. STRIPE_PRICE_TIRA, STRIPE_PRICE_VIDEO y STRIPE_PRICE_PRUEBA deben ser price_... del mismo modo (test o live) que la clave.";
+    return "El Price ID no existe en esta cuenta de Stripe. STRIPE_PRICE_TIRA y STRIPE_PRICE_VIDEO deben ser price_... del mismo modo (test o live) que la clave.";
   }
   if (lower.includes("tax_code") || lower.includes("managed payments")) {
     return "Stripe Managed Payments pide un código fiscal en el producto. Desactívalo en esta sesión o asigna un Product tax code en el producto de Stripe.";

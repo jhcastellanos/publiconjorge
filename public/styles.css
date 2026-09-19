@@ -1138,10 +1138,6 @@ textarea:focus {
   margin: 0 0 0.45rem;
 }
 
-.service-card--test {
-  background: var(--cream);
-}
-
 .spot--featured .service-card__kicker,
 .service-card--complete .service-card__kicker {
   color: #93c5fd;
@@ -1477,10 +1473,6 @@ textarea:focus {
   .services {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
-  }
-
-  .membership-plans {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .about-card {

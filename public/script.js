@@ -3,7 +3,7 @@ const LEADS_STORAGE_KEY = "publi-con-jorge-leads";
 const SUPPORT_PHONE = "5612154451";
 const SUPPORT_PHONE_DISPLAY = "561-215-4451";
 
-const services = (window.PUBLI_SERVICES || []).filter((item) => !item.testOnly);
+const services = window.PUBLI_SERVICES || [];
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileNav = document.getElementById("menu-movil");
 const yearEl = document.getElementById("year");
@@ -44,9 +44,6 @@ function iconFor(id) {
   }
   if (id === "landing") {
     return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11h24M8 16h10M8 20h7" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
-  }
-  if (id === "prueba") {
-    return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 15h24" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="20.5" r="1.6" fill="currentColor"/></svg>`;
   }
   return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="19" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 13v6M24 13v6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
 }

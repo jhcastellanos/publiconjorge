@@ -118,40 +118,6 @@ const PUBLI_SERVICES = [
     membershipCtaLabel: "Llamar para cotizar",
     featured: true,
   },
-  {
-    id: "prueba",
-    name: "Producto de prueba",
-    kicker: "Solo prueba",
-    shortDescription:
-      "Plan técnico para verificar el pago de la membresía. No es un espacio publicitario.",
-    features: [
-      "Sirve para probar el flujo de PIN y Stripe Checkout",
-      "No incluye Tira, Video ni Landing",
-      "Se puede cancelar desde Membresía",
-    ],
-    membershipFeatures: [
-      "Verificación del flujo de pago",
-      "Renovación mensual de prueba",
-      "Cancelación desde la sección Membresía",
-    ],
-    howItWorks: [
-      "Este plan existe solo para probar el cobro mensual con Stripe.",
-      "No reserva un espacio publicitario en los LIVE.",
-      "Después del pago, la membresía se gestiona y se cancela desde esta misma sección.",
-    ],
-    includes: ["Cobro de prueba mediante Stripe Checkout"],
-    materials: "",
-    regularPrice: 5,
-    promotionalPrice: 1,
-    customPricing: false,
-    billing: "monthly",
-    stripePriceEnv: "STRIPE_PRICE_PRUEBA",
-    priceNote: "Este plan es solo para pruebas de pago. No incluye un espacio publicitario.",
-    ctaLabel: "Me interesa",
-    membershipCtaLabel: "Seleccionar",
-    featured: false,
-    testOnly: true,
-  },
 ];
 
 if (typeof window !== "undefined") {

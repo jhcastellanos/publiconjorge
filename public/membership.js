@@ -60,9 +60,6 @@ function iconFor(id) {
   if (id === "landing") {
     return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11h24M8 16h10M8 20h7" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
   }
-  if (id === "prueba") {
-    return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 15h24" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="20.5" r="1.6" fill="currentColor"/></svg>`;
-  }
   return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="19" width="24" height="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 13v6M24 13v6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
 }
 
@@ -260,7 +257,7 @@ function plansView() {
       ${plans
         .map(
           (plan, index) => `
-        <article class="spot service-card${plan.featured && !plan.customPricing ? " spot--featured service-card--complete" : ""}${plan.testOnly ? " service-card--test" : ""}">
+        <article class="spot service-card${plan.featured && !plan.customPricing ? " spot--featured service-card--complete" : ""}">
           <div class="service-card__top">
             <span class="service-card__icon">${iconFor(plan.id)}</span>
             <p class="spot__num">0${index + 1}</p>

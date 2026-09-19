@@ -79,7 +79,6 @@ function publicPlans({ includePrices = false } = {}) {
       billing: plan.billing,
       membershipCtaLabel: plan.membershipCtaLabel,
       featured: Boolean(plan.featured),
-      testOnly: Boolean(plan.testOnly),
       stripeReady: Boolean(stripePriceId(plan)),
     };
     if (includePrices && !plan.customPricing) {
