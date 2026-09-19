@@ -218,17 +218,18 @@ em {
 .hero-portrait {
   justify-self: center;
   position: relative;
-  width: min(26rem, 100%);
+  width: min(32rem, 100%);
 }
 
 .hero-portrait img {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 50%;
+  object-position: center 20%;
+  border-radius: 1.6rem;
   box-shadow: 0 30px 70px rgba(15, 23, 42, 0.18);
   display: block;
-  background: #dbeafe;
+  background: #0b1220;
 }
 
 .hero-portrait__badge {
@@ -822,6 +823,7 @@ textarea:focus {
   width: min(22rem, 100%);
   aspect-ratio: 1;
   object-fit: cover;
+  object-position: 50% 18%;
   border-radius: 50%;
   box-shadow: var(--shadow);
   display: block;
