@@ -6,6 +6,14 @@ const cancelModal = document.getElementById("cancel-modal");
 const cancelDateEl = document.getElementById("cancel-modal-date");
 const cancelStatus = document.getElementById("cancel-status");
 const confirmCancelBtn = document.getElementById("confirm-cancel");
+const pinModal = document.getElementById("pin-modal");
+const pinForm = document.getElementById("pin-form");
+const pinInput = document.getElementById("sales-pin");
+const pinStatus = document.getElementById("pin-status");
+const pinHelp = document.getElementById("pin-help");
+const pinSubmit = document.getElementById("pin-submit");
+const SALES_PHONE = "5612154451";
+const SALES_PHONE_DISPLAY = "561-215-4451";
 
 const state = {
   config: null,
@@ -20,6 +28,7 @@ const state = {
     email: "",
     phone: "",
   },
+  pendingCheckout: null,
 };
 
 function formatMoney(value) {
@@ -55,6 +64,28 @@ function setStatus(message, isError = false) {
   if (!appStatus) return;
   appStatus.textContent = message || "";
   appStatus.classList.toggle("is-error", Boolean(isError && message));
+}
+
+function salesPhoneDisplay() {
+  return state.config?.salesTeamPhoneDisplay || SALES_PHONE_DISPLAY;
+}
+
+function salesPhoneHref() {
+  return `tel:${state.config?.salesTeamPhone || SALES_PHONE}`;
+}
+
+function setPinStatus(message, isError = false, showSalesHelp = false) {
+  if (!pinStatus) return;
+  pinStatus.textContent = message;
+  pinStatus.classList.toggle("is-error", isError);
+  if (pinHelp) pinHelp.hidden = !showSalesHelp;
+  if (pinHelp && showSalesHelp) {
+    const phone = pinHelp.querySelector("a[href^='tel:']");
+    if (phone) {
+      phone.href = salesPhoneHref();
+      phone.textContent = salesPhoneDisplay();
+    }
+  }
 }
 
 function openDialog(dialog) {
@@ -221,7 +252,7 @@ function checkoutView() {
     <header class="section-head">
       <p class="kicker">Contratación</p>
       <h2>Completa tus datos</h2>
-      <p>Después aceptarás los términos y continuarás al pago seguro de Stripe.</p>
+      <p>Después de aceptar los términos, verificarás el PIN de ventas y continuarás al pago seguro de Stripe.</p>
     </header>
     <div class="checkout-layout">
       <aside class="spot checkout-summary">
@@ -484,14 +515,37 @@ async function submitCheckout(event) {
     return;
   }
 
+  state.pendingCheckout = payload;
+  if (pinForm) pinForm.reset();
+  setPinStatus("");
+  openDialog(pinModal);
+  pinInput?.focus();
+}
+
+async function submitPin(event) {
+  event.preventDefault();
+  const payload = state.pendingCheckout;
+  if (!payload) {
+    setPinStatus("Completa tus datos antes de continuar al pago.", true);
+    return;
+  }
+  const salesPin = String(pinInput?.value || "").trim();
+  if (!/^\d{4}$/.test(salesPin)) {
+    setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de ventas.", true);
+    return;
+  }
+
+  if (pinSubmit) pinSubmit.disabled = true;
   try {
     const data = await api("/api/checkout", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, salesPin }),
     });
     window.location.href = data.url;
   } catch (error) {
-    setStatus(error.message, true);
+    setPinStatus(error.message, true, error.code === "pin_invalid" || error.code === "pin_locked");
+  } finally {
+    if (pinSubmit) pinSubmit.disabled = false;
   }
 }
 
@@ -637,8 +691,12 @@ document.addEventListener("click", (event) => {
 });
 
 confirmCancelBtn?.addEventListener("click", confirmCancel);
+pinForm?.addEventListener("submit", submitPin);
+pinInput?.addEventListener("input", () => {
+  pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
+});
 
-[termsModal, cancelModal].forEach((dialog) => {
+[termsModal, cancelModal, pinModal].forEach((dialog) => {
   dialog?.addEventListener("click", (event) => {
     const panel = dialog.querySelector(".modal__panel");
     if (panel && !panel.contains(event.target)) closeDialog(dialog);

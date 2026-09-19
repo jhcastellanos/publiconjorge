@@ -16,6 +16,9 @@ const {
   getPlan,
   planFromPriceId,
   publicConfig,
+  salesPinMatches,
+  salesPinErrorMessage,
+  SALES_TEAM_PHONE_DISPLAY,
   parseCookies,
   sessionCookie,
   clearSessionCookie,
@@ -45,6 +48,7 @@ app.use((req, _res, next) => {
 });
 
 const lookupAttempts = new Map();
+const pinAttempts = new Map();
 
 function stripeClient() {
   if (!isStripeConfigured()) return null;
@@ -95,6 +99,19 @@ function rateLimitLookup(ip) {
   entry.count += 1;
   lookupAttempts.set(key, entry);
   return entry.count <= 8;
+}
+
+function rateLimitPin(ip) {
+  const key = ip || "unknown";
+  const now = Date.now();
+  const entry = pinAttempts.get(key) || { count: 0, start: now };
+  if (now - entry.start > 15 * 60 * 1000) {
+    entry.count = 0;
+    entry.start = now;
+  }
+  entry.count += 1;
+  pinAttempts.set(key, entry);
+  return entry.count <= 5;
 }
 
 async function requireSession(req, res) {
@@ -254,16 +271,6 @@ app.get("/api/terms/pdf", async (req, res) => {
 });
 
 app.post("/api/checkout", async (req, res) => {
-  const stripe = stripeClient();
-  if (!stripe) {
-    return jsonError(
-      res,
-      503,
-      "stripe_not_configured",
-      "El pago todavía no está conectado. Configura STRIPE_SECRET_KEY y los Price IDs en el servidor.",
-    );
-  }
-
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const contactName = String(body.contactName || "").trim();
   const businessName = String(body.businessName || "").trim();
@@ -289,20 +296,41 @@ app.post("/api/checkout", async (req, res) => {
       "Este plan no se contrata con pago automático. Solicita una cotización.",
     );
   }
-  if (!priceId) {
-    return jsonError(
-      res,
-      503,
-      "price_missing",
-      "Este plan todavía no tiene un precio de Stripe configurado.",
-    );
-  }
   if (!termsAccepted || termsVersion !== TERMS_VERSION) {
     return jsonError(
       res,
       400,
       "terms_required",
       "Debes leer y aceptar la versión vigente de los Términos y Condiciones.",
+    );
+  }
+  if (!salesPinMatches(body.salesPin || body.pin)) {
+    if (!rateLimitPin(req.ip || req.headers["x-forwarded-for"])) {
+      return jsonError(
+        res,
+        429,
+        "pin_locked",
+        `Demasiados intentos. Contacta al equipo de ventas al ${SALES_TEAM_PHONE_DISPLAY} para que te proporcionen el PIN.`,
+      );
+    }
+    return jsonError(res, 403, "pin_invalid", salesPinErrorMessage());
+  }
+
+  const stripe = stripeClient();
+  if (!stripe) {
+    return jsonError(
+      res,
+      503,
+      "stripe_not_configured",
+      "El pago todavía no está conectado. Configura STRIPE_SECRET_KEY y los Price IDs en el servidor.",
+    );
+  }
+  if (!priceId) {
+    return jsonError(
+      res,
+      503,
+      "price_missing",
+      "Este plan todavía no tiene un precio de Stripe configurado.",
     );
   }
 

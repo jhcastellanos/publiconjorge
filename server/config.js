@@ -87,11 +87,33 @@ function publicPlans() {
   }));
 }
 
+const SALES_TEAM_PHONE = "5612154451";
+const SALES_TEAM_PHONE_DISPLAY = "561-215-4451";
+
+function salesPinExpected() {
+  return String(process.env.CHECKOUT_SALES_PIN || "0402").trim();
+}
+
+function salesPinMatches(value) {
+  const expected = salesPinExpected();
+  const given = String(value || "").replace(/\D/g, "");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(given);
+  if (!expected || a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+function salesPinErrorMessage() {
+  return `El PIN no es correcto. Contacta al equipo de ventas al ${SALES_TEAM_PHONE_DISPLAY} para que te lo proporcionen.`;
+}
+
 function publicConfig() {
   return {
     termsVersion: TERMS_VERSION,
     stripeConfigured: isStripeConfigured(),
     debugLinks: process.env.NODE_ENV !== "production" && process.env.MEMBERSHIP_DEBUG_LINKS === "true",
+    salesTeamPhone: SALES_TEAM_PHONE,
+    salesTeamPhoneDisplay: SALES_TEAM_PHONE_DISPLAY,
     plans: publicPlans(),
   };
 }
@@ -186,6 +208,10 @@ module.exports = {
   planFromPriceId,
   publicPlans,
   publicConfig,
+  salesPinMatches,
+  salesPinErrorMessage,
+  SALES_TEAM_PHONE,
+  SALES_TEAM_PHONE_DISPLAY,
   hashToken,
   randomToken,
   parseCookies,
