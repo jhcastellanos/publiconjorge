@@ -682,6 +682,12 @@ textarea:focus {
   color: var(--live);
 }
 
+.form-help {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .site-footer {
   background: var(--ink);
   color: #94a3b8;

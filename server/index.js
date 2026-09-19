@@ -119,13 +119,13 @@ async function requireSession(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies.membership_session;
   if (!token) {
-    jsonError(res, 401, "unauthenticated", "Verifica tu email para gestionar la membresía.");
+    jsonError(res, 401, "unauthenticated", "Ingresa tu email y el PIN para gestionar la membresía.");
     return null;
   }
   const data = verifyToken(token);
   if (!data || data.typ !== "session") {
     res.setHeader("Set-Cookie", clearSessionCookie());
-    jsonError(res, 401, "expired", "La sesión caducó. Vuelve a verificar tu email.");
+    jsonError(res, 401, "expired", "La sesión caducó. Vuelve a ingresar tu email y el PIN.");
     return null;
   }
   return {
@@ -175,6 +175,23 @@ async function subscriptionsForCustomers(stripe, customers) {
     for (const item of list.data) subscriptions.push({ customer, subscription: item });
   }
   return subscriptions;
+}
+
+function membershipListResponse(emailAddress, matches) {
+  const memberships = matches
+    .map(({ customer, subscription }) => ({
+      customerId: customer.id,
+      email: customer.email || emailAddress,
+      businessName: subscription.metadata?.businessName || customer.name || null,
+      ...serializeSubscription(subscription),
+    }))
+    .sort((a, b) => String(b.currentPeriodEnd || "").localeCompare(String(a.currentPeriodEnd || "")));
+
+  return {
+    ok: true,
+    email: emailAddress,
+    memberships,
+  };
 }
 
 let portalConfigurationId = process.env.STRIPE_PORTAL_CONFIGURATION_ID || null;
@@ -444,22 +461,31 @@ app.get("/api/checkout/session", async (req, res) => {
 });
 
 app.post("/api/membership/access", async (req, res) => {
-  const generic = {
-    ok: true,
-    message:
-      "Si existe una membresía con este email, te enviaremos un enlace para verificar tu identidad y acceder.",
-  };
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const emailAddress = normalizeEmail(body.email);
+  const forwarded = req.ip || req.headers["x-forwarded-for"];
 
-  if (!rateLimitLookup(req.ip)) {
-    return res.status(429).json({
-      ok: true,
-      message: generic.message,
-    });
-  }
-
-  const emailAddress = normalizeEmail(req.body.email);
   if (!isValidEmail(emailAddress)) {
     return jsonError(res, 400, "invalid_email", "Escribe un email válido.");
+  }
+  if (!salesPinMatches(body.salesPin || body.pin)) {
+    if (!rateLimitPin(forwarded)) {
+      return jsonError(
+        res,
+        429,
+        "pin_locked",
+        `Demasiados intentos. Contacta al equipo de soporte al ${SALES_TEAM_PHONE_DISPLAY} para que te proporcionen el PIN.`,
+      );
+    }
+    return jsonError(res, 403, "pin_invalid", salesPinErrorMessage());
+  }
+  if (!rateLimitLookup(forwarded)) {
+    return jsonError(
+      res,
+      429,
+      "lookup_locked",
+      "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+    );
   }
 
   const stripe = stripeClient();
@@ -475,19 +501,19 @@ app.post("/api/membership/access", async (req, res) => {
   try {
     const customers = await findCustomersByEmail(stripe, emailAddress);
     const matches = await subscriptionsForCustomers(stripe, customers);
-    if (matches.length > 0) {
-      const token = signToken({ typ: "access", email: emailAddress }, 15 * 60 * 1000);
-      const accessUrl = `${publicUrl()}/membership?acceso=${encodeURIComponent(token)}`;
-      email.sendAccessEmail({ to: emailAddress, accessUrl });
-
-      if (process.env.NODE_ENV !== "production" && process.env.MEMBERSHIP_DEBUG_LINKS === "true") {
-        return res.json({ ...generic, debugAccessUrl: accessUrl });
-      }
+    if (!matches.length) {
+      return jsonError(res, 404, "not_found", "No encontramos una membresía para este email.");
     }
-    res.json(generic);
+
+    const sessionToken = signToken(
+      { typ: "session", email: emailAddress, customerId: matches[0].customer.id },
+      24 * 60 * 60 * 1000,
+    );
+    res.setHeader("Set-Cookie", sessionCookie(sessionToken));
+    res.json(membershipListResponse(emailAddress, matches));
   } catch (error) {
     console.error("[membership] access:", error);
-    res.json(generic);
+    jsonError(res, 502, "lookup_failed", "No se pudo obtener la membresía desde Stripe.");
   }
 });
 
@@ -529,20 +555,7 @@ app.get("/api/membership/me", async (req, res) => {
   try {
     const customers = await findCustomersByEmail(stripe, session.email);
     const matches = await subscriptionsForCustomers(stripe, customers);
-    const memberships = matches
-      .map(({ customer, subscription }) => ({
-        customerId: customer.id,
-        email: customer.email || session.email,
-        businessName: subscription.metadata?.businessName || customer.name || null,
-        ...serializeSubscription(subscription),
-      }))
-      .sort((a, b) => String(b.currentPeriodEnd || "").localeCompare(String(a.currentPeriodEnd || "")));
-
-    res.json({
-      ok: true,
-      email: session.email,
-      memberships,
-    });
+    res.json(membershipListResponse(session.email, matches));
   } catch (error) {
     console.error("[membership] me:", error);
     jsonError(res, 502, "lookup_failed", "No se pudo obtener la membresía desde Stripe.");

@@ -187,7 +187,7 @@ function homeView() {
       <article class="spot choice-card">
         <p class="service-card__kicker">Ya soy cliente</p>
         <h2>Ya tengo una membresía</h2>
-        <p>Verifica tu email para ver el plan, la próxima renovación y cancelar si lo necesitas.</p>
+        <p>Ingresa tu email y el PIN para ver el plan, la próxima renovación y cancelar en este sitio.</p>
         <button class="btn btn-primary btn-full" type="button" data-view="existing">Ya tengo una membresía</button>
       </article>
       <article class="spot choice-card choice-card--new">
@@ -206,26 +206,29 @@ function existingView() {
     <header class="section-head">
       <p class="kicker">Acceso</p>
       <h2>Buscar mi membresía</h2>
-      <p>El email por sí solo no basta para gestionar o cancelar. Te enviaremos un enlace de verificación.</p>
+      <p>Con tu email y el PIN de soporte puedes ver la membresía y cancelar la renovación de Stripe en este sitio.</p>
     </header>
     <form class="form membership-form" id="access-form">
       <div class="field">
         <label for="access-email">Email asociado a tu membresía</label>
         <input id="access-email" name="email" type="email" autocomplete="email" placeholder="tuemail@ejemplo.com" required />
       </div>
-      <button class="btn btn-primary btn-full" type="submit">Buscar mi membresía</button>
+      <div class="field">
+        <label for="access-pin">PIN *</label>
+        <input
+          id="access-pin"
+          name="salesPin"
+          type="password"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="4"
+          pattern="[0-9]{4}"
+          required
+        />
+      </div>
+      <p class="form-help">Si no tienes el PIN, llama al ${escapeHtml(salesPhoneDisplay())}.</p>
+      <button class="btn btn-primary btn-full" type="submit">Ver y gestionar membresía</button>
     </form>
-  `;
-}
-
-function sentLinkView() {
-  return `
-    <button class="text-back" type="button" data-view="existing">← Volver</button>
-    <header class="section-head">
-      <p class="kicker">Verificación</p>
-      <h2>Revisa tu email</h2>
-      <p>Si existe una membresía con ese correo, te enviaremos un enlace para verificar tu identidad y acceder.</p>
-    </header>
   `;
 }
 
@@ -443,7 +446,6 @@ function render() {
   const views = {
     home: homeView,
     existing: existingView,
-    sent: sentLinkView,
     plans: plansView,
     checkout: checkoutView,
     account: accountView,
@@ -518,20 +520,24 @@ async function openTerms(planId = "") {
 
 async function submitAccess(event) {
   event.preventDefault();
-  const email = String(new FormData(event.target).get("email") || "").trim();
+  const form = new FormData(event.target);
+  const email = String(form.get("email") || "").trim();
+  const salesPin = String(form.get("salesPin") || "").replace(/\D/g, "");
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
   try {
     const data = await api("/api/membership/access", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, salesPin }),
     });
-    showView("sent");
-    if (data.debugAccessUrl) {
-      setStatus(`Modo técnico: ${data.debugAccessUrl}`);
-    } else {
-      setStatus(data.message);
-    }
+    state.email = data.email;
+    state.memberships = data.memberships || [];
+    showView("account");
+    setStatus("");
   } catch (error) {
     setStatus(error.message, true);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 }
 
@@ -730,6 +736,12 @@ app?.addEventListener("click", (event) => {
 app?.addEventListener("submit", (event) => {
   if (event.target.id === "access-form") submitAccess(event);
   if (event.target.id === "checkout-form") submitCheckout(event);
+});
+
+app?.addEventListener("input", (event) => {
+  if (event.target.id === "access-pin") {
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, 4);
+  }
 });
 
 app?.addEventListener("change", (event) => {
