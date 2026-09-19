@@ -1,21 +1,21 @@
 require("dotenv").config();
 
+const crypto = require("crypto");
 const path = require("path");
 const express = require("express");
 const Stripe = require("stripe");
-const db = require("./db");
 const email = require("./email");
 const { buildTermsPdf } = require("./pdf");
 const { getTerms, TERMS_VERSION } = require("./terms");
 const {
   publicUrl,
+  signToken,
+  verifyToken,
   isStripeConfigured,
   stripePriceId,
   getPlan,
   planFromPriceId,
   publicConfig,
-  hashToken,
-  randomToken,
   parseCookies,
   sessionCookie,
   clearSessionCookie,
@@ -70,13 +70,16 @@ async function requireSession(req, res) {
     jsonError(res, 401, "unauthenticated", "Verifica tu email para gestionar la membresía.");
     return null;
   }
-  const row = db.findSession(hashToken(token));
-  if (!row || new Date(row.expires_at).getTime() < Date.now()) {
+  const data = verifyToken(token);
+  if (!data || data.typ !== "session") {
     res.setHeader("Set-Cookie", clearSessionCookie());
     jsonError(res, 401, "expired", "La sesión caducó. Vuelve a verificar tu email.");
     return null;
   }
-  return row;
+  return {
+    email: data.email,
+    stripe_customer_id: data.customerId,
+  };
 }
 
 function serializeSubscription(subscription) {
@@ -170,13 +173,8 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
     return res.status(400).send("invalid_signature");
   }
 
-  if (db.hasProcessedEvent(event.id)) {
-    return res.json({ received: true, duplicate: true });
-  }
-
   try {
     await handleStripeEvent(stripe, event);
-    db.markEventProcessed(event.id, event.type);
     res.json({ received: true });
   } catch (error) {
     console.error("[stripe] Error procesando webhook:", error);
@@ -274,15 +272,7 @@ app.post("/api/checkout", async (req, res) => {
   }
 
   const acceptedAt = new Date().toISOString();
-  const acceptanceId = db.insertTermsAcceptance({
-    email: emailAddress,
-    contactName,
-    businessName,
-    phone,
-    planId,
-    termsVersion: TERMS_VERSION,
-    acceptedAt,
-  });
+  const acceptanceId = crypto.randomUUID();
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -316,7 +306,6 @@ app.post("/api/checkout", async (req, res) => {
       },
     });
 
-    db.updateAcceptanceStripe(acceptanceId, { sessionId: session.id });
     res.json({ ok: true, url: session.url });
   } catch (error) {
     console.error("[stripe] checkout:", error);
@@ -350,14 +339,10 @@ app.get("/api/checkout/session", async (req, res) => {
       session.customer_details?.email || session.customer_email || (session.customer?.email ?? "");
 
     if (customerId && customerEmail) {
-      const token = randomToken();
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      db.createSession({
-        tokenHash: hashToken(token),
-        email: normalizeEmail(customerEmail),
-        customerId,
-        expiresAt,
-      });
+      const token = signToken(
+        { typ: "session", email: normalizeEmail(customerEmail), customerId },
+        24 * 60 * 60 * 1000,
+      );
       res.setHeader("Set-Cookie", sessionCookie(token));
     }
 
@@ -406,10 +391,8 @@ app.post("/api/membership/access", async (req, res) => {
     const customers = await findCustomersByEmail(stripe, emailAddress);
     const matches = await subscriptionsForCustomers(stripe, customers);
     if (matches.length > 0) {
-      const token = randomToken();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-      db.createAccessToken({ email: emailAddress, tokenHash: hashToken(token), expiresAt });
-      const accessUrl = `${publicUrl()}/membership?acceso=${token}`;
+      const token = signToken({ typ: "access", email: emailAddress }, 15 * 60 * 1000);
+      const accessUrl = `${publicUrl()}/membership?acceso=${encodeURIComponent(token)}`;
       email.sendAccessEmail({ to: emailAddress, accessUrl });
 
       if (process.env.NODE_ENV !== "production" && process.env.MEMBERSHIP_DEBUG_LINKS === "true") {
@@ -425,35 +408,26 @@ app.post("/api/membership/access", async (req, res) => {
 
 app.post("/api/membership/verify", async (req, res) => {
   const token = String(req.body.token || req.query.token || "");
-  if (!token || token.length < 32) {
-    return jsonError(res, 400, "invalid", "El enlace de acceso no es válido.");
-  }
-
-  const row = db.findAccessToken(hashToken(token));
-  if (!row || row.used_at || new Date(row.expires_at).getTime() < Date.now()) {
-    return jsonError(res, 400, "expired", "El enlace caducó o ya fue utilizado. Solicita uno nuevo.");
+  const access = verifyToken(token);
+  if (!access || access.typ !== "access") {
+    return jsonError(res, 400, "expired", "El enlace caducó o no es válido. Solicita uno nuevo.");
   }
 
   const stripe = stripeClient();
   if (!stripe) return jsonError(res, 503, "stripe_not_configured", "Stripe no está configurado.");
 
   try {
-    const customers = await findCustomersByEmail(stripe, row.email);
+    const customers = await findCustomersByEmail(stripe, access.email);
     if (!customers.length) {
       return jsonError(res, 404, "not_found", "No encontramos una membresía para este acceso.");
     }
 
-    db.markAccessTokenUsed(row.id);
-    const sessionToken = randomToken();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    db.createSession({
-      tokenHash: hashToken(sessionToken),
-      email: row.email,
-      customerId: customers[0].id,
-      expiresAt,
-    });
+    const sessionToken = signToken(
+      { typ: "session", email: access.email, customerId: customers[0].id },
+      24 * 60 * 60 * 1000,
+    );
     res.setHeader("Set-Cookie", sessionCookie(sessionToken));
-    res.json({ ok: true, email: row.email });
+    res.json({ ok: true, email: access.email });
   } catch (error) {
     console.error("[membership] verify:", error);
     jsonError(res, 502, "verify_failed", "No se pudo verificar el acceso.");
@@ -556,17 +530,6 @@ app.post("/api/membership/cancel", async (req, res) => {
       cancel_at_period_end: true,
     });
     const periodEnd = formatDateFromUnix(periodEndUnix(updated));
-    db.upsertMembership({
-      email: session.email,
-      customerId: updated.customer,
-      subscriptionId: updated.id,
-      status: updated.status,
-      currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: true,
-      planId: updated.metadata?.planId,
-      termsVersion: updated.metadata?.termsVersion,
-      termsAcceptedAt: updated.metadata?.termsAcceptedAt,
-    });
     email.sendCancellationScheduled({
       to: session.email,
       currentPeriodEnd: periodEnd,
@@ -586,11 +549,7 @@ app.post("/api/membership/cancel", async (req, res) => {
   }
 });
 
-app.post("/api/membership/logout", async (req, res) => {
-  const cookies = parseCookies(req.headers.cookie);
-  if (cookies.membership_session) {
-    db.deleteSession(hashToken(cookies.membership_session));
-  }
+app.post("/api/membership/logout", async (_req, res) => {
   res.setHeader("Set-Cookie", clearSessionCookie());
   res.json({ ok: true });
 });
@@ -599,60 +558,19 @@ async function handleStripeEvent(stripe, event) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
-      const acceptanceId = Number(session.client_reference_id || session.metadata?.acceptanceId || 0);
-      const customerId = session.customer;
-      const subscriptionId = session.subscription;
-      if (acceptanceId) {
-        db.updateAcceptanceStripe(acceptanceId, {
-          customerId,
-          subscriptionId,
-          sessionId: session.id,
+      const to = session.customer_details?.email || session.customer_email;
+      if (to) {
+        email.sendMembershipConfirmation({
+          to,
+          planId: session.metadata?.planId,
+          termsVersion: session.metadata?.termsVersion,
         });
-        const acceptance = db.findAcceptanceById(acceptanceId);
-        if (acceptance) {
-          db.upsertMembership({
-            email: acceptance.email,
-            contactName: acceptance.contact_name,
-            businessName: acceptance.business_name,
-            phone: acceptance.phone,
-            planId: acceptance.plan_id,
-            customerId,
-            subscriptionId,
-            status: "active",
-            termsVersion: acceptance.terms_version,
-            termsAcceptedAt: acceptance.accepted_at,
-          });
-          email.sendMembershipConfirmation({
-            to: acceptance.email,
-            planId: acceptance.plan_id,
-            termsVersion: acceptance.terms_version,
-          });
-        }
       }
       break;
     }
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
-      const subscription = event.data.object;
-      const customer =
-        typeof subscription.customer === "string"
-          ? await stripe.customers.retrieve(subscription.customer)
-          : subscription.customer;
-      db.upsertMembership({
-        email: customer.email || subscription.metadata?.email || "",
-        contactName: subscription.metadata?.contactName,
-        businessName: subscription.metadata?.businessName,
-        phone: subscription.metadata?.phone,
-        planId: subscription.metadata?.planId,
-        customerId: customer.id,
-        subscriptionId: subscription.id,
-        status: subscription.status,
-        currentPeriodEnd: formatDateFromUnix(periodEndUnix(subscription)),
-        cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
-        termsVersion: subscription.metadata?.termsVersion,
-        termsAcceptedAt: subscription.metadata?.termsAcceptedAt,
-      });
       break;
     }
     case "invoice.paid": {
@@ -680,17 +598,21 @@ app.get("/membership", (_req, res) => {
 
 app.use(express.static(ROOT, { dotfiles: "deny", index: "index.html" }));
 
-if (process.env.NODE_ENV === "production") {
-  const secret = process.env.SESSION_SECRET || "";
-  if (!secret || secret === "reemplaza-este-secreto") {
-    console.error("SESSION_SECRET es obligatorio en producción.");
-    process.exit(1);
-  }
-}
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.info(`Publi con Jorge en ${publicUrl()}`);
-  if (!isStripeConfigured()) {
-    console.info("Stripe aún no está configurado. Completa las variables de entorno antes de cobrar membresías.");
+if (require.main === module) {
+  if (process.env.NODE_ENV === "production") {
+    const secret = process.env.SESSION_SECRET || "";
+    if (!secret || secret === "reemplaza-este-secreto") {
+      console.error("SESSION_SECRET es obligatorio en producción.");
+      process.exit(1);
+    }
   }
-});
+
+  app.listen(PORT, () => {
+    console.info(`Publi con Jorge en ${publicUrl()}`);
+    if (!isStripeConfigured()) {
+      console.info("Stripe aún no está configurado. Completa las variables de entorno antes de cobrar membresías.");
+    }
+  });
+}

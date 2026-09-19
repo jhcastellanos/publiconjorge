@@ -3,7 +3,44 @@ const { PUBLI_SERVICES } = require("../services");
 const { TERMS_VERSION } = require("./terms");
 
 function publicUrl() {
-  return (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, "");
+  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, "")}`;
+  }
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, "")}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
+
+function sessionSecret() {
+  const secret = process.env.SESSION_SECRET || "";
+  if (!secret || secret === "reemplaza-este-secreto") return "";
+  return secret;
+}
+
+function signToken(payload, ttlMs) {
+  const secret = sessionSecret() || "dev-only-session-secret";
+  const body = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + ttlMs })).toString("base64url");
+  const sig = crypto.createHmac("sha256", secret).update(body).digest("base64url");
+  return `${body}.${sig}`;
+}
+
+function verifyToken(token) {
+  const secret = sessionSecret() || (process.env.VERCEL ? "" : "dev-only-session-secret");
+  if (!secret) return null;
+  const parts = String(token || "").split(".");
+  if (parts.length !== 2) return null;
+  const [body, sig] = parts;
+  const expected = crypto.createHmac("sha256", secret).update(body).digest("base64url");
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(body, "base64url").toString());
+    if (!data.exp || data.exp < Date.now()) return null;
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 function isStripeConfigured() {
@@ -79,13 +116,17 @@ function parseCookies(header) {
   return out;
 }
 
+function cookieSecure() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+}
+
 function sessionCookie(token, maxAgeSeconds = 60 * 60 * 24) {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = cookieSecure() ? "; Secure" : "";
   return `membership_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}${secure}`;
 }
 
 function clearSessionCookie() {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = cookieSecure() ? "; Secure" : "";
   return `membership_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
 }
 
@@ -135,6 +176,9 @@ function formatMoneyFromStripe(amount, currency) {
 module.exports = {
   PUBLI_SERVICES,
   publicUrl,
+  sessionSecret,
+  signToken,
+  verifyToken,
   isStripeConfigured,
   stripePriceId,
   getPlan,
