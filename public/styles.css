@@ -1687,6 +1687,12 @@ textarea:focus {
   margin-top: 1rem;
 }
 
+.pin-help-actions {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
 .btn-danger {
   background: transparent;
   color: var(--live);

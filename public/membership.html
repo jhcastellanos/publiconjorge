@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=26" />
+    <link rel="stylesheet" href="./styles.css?v=27" />
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -217,17 +217,20 @@
           <aside class="notice-block" id="pin-help" hidden>
             <p class="notice-block__label">Equipo de soporte</p>
             <p>
-              Si no tienes el PIN, llama al
-              <a href="tel:5612154451">561-215-4451</a>
-              para que te lo proporcionen.
+              El PIN no es correcto. Puedes cerrar este formulario o llamar para que te lo
+              proporcionen.
             </p>
+            <div class="pin-help-actions">
+              <button class="btn btn-ghost" type="button" data-close-modal>Cerrar</button>
+              <a class="btn btn-primary" id="pin-help-call" href="tel:5612154451">Llamar al 561-215-4451</a>
+            </div>
           </aside>
         </form>
       </div>
     </dialog>
 
     <script src="./services.js?v=12"></script>
-    <script src="./script.js?v=16"></script>
-    <script src="./membership.js?v=17"></script>
+    <script src="./script.js?v=17"></script>
+    <script src="./membership.js?v=18"></script>
   </body>
 </html>

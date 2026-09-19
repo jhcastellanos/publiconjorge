@@ -83,10 +83,10 @@ function setPinStatus(message, isError = false, showSalesHelp = false) {
   pinStatus.classList.toggle("is-error", isError);
   if (pinHelp) pinHelp.hidden = !showSalesHelp;
   if (pinHelp && showSalesHelp) {
-    const phone = pinHelp.querySelector("a[href^='tel:']");
+    const phone = pinHelp.querySelector("#pin-help-call") || pinHelp.querySelector("a[href^='tel:']");
     if (phone) {
       phone.href = salesPhoneHref();
-      phone.textContent = salesPhoneDisplay();
+      phone.textContent = `Llamar al ${salesPhoneDisplay()}`;
     }
   }
 }
@@ -576,7 +576,7 @@ async function submitPin(event) {
     ? state.salesPin
     : String(pinInput?.value || "").trim();
   if (!/^\d{4}$/.test(salesPin)) {
-    setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de soporte.", true);
+    setPinStatus("Ingresa el PIN de 4 dígitos que te proporcionó el equipo de soporte.", true, true);
     return;
   }
 
@@ -590,7 +590,10 @@ async function submitPin(event) {
       state.salesPin = salesPin;
       applyPricedPlans(data.plans);
       closeDialog(pinModal);
-      showView("plans");
+      const requested = (state.config?.plans || []).find(
+        (item) => item.id === state.selectedPlanId && !item.customPricing,
+      );
+      showView(requested ? "checkout" : "plans");
       setStatus("");
       return;
     }
@@ -703,6 +706,7 @@ app?.addEventListener("click", (event) => {
     const view = viewBtn.getAttribute("data-view");
     setStatus("");
     if (view === "plans" && !state.pinVerified) {
+      state.selectedPlanId = "";
       openPinModal("unlock-prices");
       return;
     }
@@ -787,8 +791,18 @@ async function boot() {
   const access = params.get("acceso");
   const sessionId = params.get("session_id");
   const status = params.get("status");
+  const solicitar = params.get("solicitar");
 
   try {
+    if (solicitar) {
+      const plan = (state.config?.plans || window.PUBLI_SERVICES || []).find(
+        (item) => item.id === solicitar && !item.customPricing,
+      );
+      if (plan) state.selectedPlanId = plan.id;
+      showView("home");
+      openPinModal("unlock-prices");
+      return;
+    }
     if (access) {
       await verifyAccess(access);
       return;

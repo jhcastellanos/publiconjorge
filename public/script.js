@@ -128,7 +128,7 @@ function renderCards() {
           ${
             service.customPricing
               ? supportCallMarkup(service.ctaLabel)
-              : `<button class="btn btn-primary" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>`
+              : `<a class="btn btn-primary" href="/membership?solicitar=${encodeURIComponent(service.id)}">${escapeHtml(service.ctaLabel)}</a>`
           }
         </div>
       </article>
@@ -161,7 +161,7 @@ function renderServiceDetail(service) {
     ${
       service.customPricing
         ? `<p class="modal__note">Este paquete se cotiza por llamada con el equipo de soporte. Llama al ${escapeHtml(SUPPORT_PHONE_DISPLAY)}.</p>${supportCallMarkup(service.ctaLabel, "btn-full")}`
-        : `<button class="btn btn-primary btn-full" type="button" data-open-lead="${service.id}">${escapeHtml(service.ctaLabel)}</button>`
+        : `<a class="btn btn-primary btn-full" href="/membership?solicitar=${encodeURIComponent(service.id)}">${escapeHtml(service.ctaLabel)}</a>`
     }
   `;
 }
