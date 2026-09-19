@@ -51,7 +51,7 @@ function isStripeConfigured() {
 
 function stripePriceId(plan) {
   if (!plan?.stripePriceEnv) return null;
-  const value = process.env[plan.stripePriceEnv] || "";
+  const value = String(process.env[plan.stripePriceEnv] || "").trim();
   if (!value || value.includes("reemplaza") || value.startsWith("price_placeholder")) return null;
   if (!value.startsWith("price_")) return null;
   return value;

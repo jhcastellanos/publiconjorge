@@ -48,7 +48,23 @@ const lookupAttempts = new Map();
 
 function stripeClient() {
   if (!isStripeConfigured()) return null;
-  return new Stripe(process.env.STRIPE_SECRET_KEY);
+  return new Stripe(String(process.env.STRIPE_SECRET_KEY || "").trim());
+}
+
+function checkoutErrorMessage(error) {
+  const message = String(error?.message || "");
+  const lower = message.toLowerCase();
+  if (lower.includes("permission") || lower.includes("rak_")) {
+    return "La clave de Stripe no tiene permiso para Checkout. En Developers → API keys usa una Secret key (sk_live_) o una Restricted key con Checkout Sessions: Write, Customers: Write, Prices: Read y Products: Read.";
+  }
+  if (lower.includes("no such price") || lower.includes("no such product")) {
+    return "El Price ID no existe en esta cuenta Live de Stripe. STRIPE_PRICE_TIRA y STRIPE_PRICE_VIDEO deben ser price_... del mismo modo Live que la clave.";
+  }
+  if (lower.includes("one_time") || (lower.includes("recurring") && lower.includes("mode"))) {
+    return "Ese precio de Stripe no es una suscripción mensual. En el producto, Billing debe ser Recurring / Monthly.";
+  }
+  if (message) return `Stripe: ${message}`;
+  return "No se pudo abrir Stripe Checkout. Inténtalo de nuevo.";
 }
 
 function jsonError(res, status, code, message) {
@@ -245,13 +261,14 @@ app.post("/api/checkout", async (req, res) => {
     );
   }
 
-  const contactName = String(req.body.contactName || "").trim();
-  const businessName = String(req.body.businessName || "").trim();
-  const phone = String(req.body.phone || "").trim();
-  const emailAddress = normalizeEmail(req.body.email);
-  const planId = String(req.body.planId || "").trim();
-  const termsAccepted = req.body.termsAccepted === true;
-  const termsVersion = String(req.body.termsVersion || "").trim();
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const contactName = String(body.contactName || "").trim();
+  const businessName = String(body.businessName || "").trim();
+  const phone = String(body.phone || "").trim();
+  const emailAddress = normalizeEmail(body.email);
+  const planId = String(body.planId || "").trim();
+  const termsAccepted = body.termsAccepted === true;
+  const termsVersion = String(body.termsVersion || "").trim();
   const plan = getPlan(planId);
   const priceId = stripePriceId(plan);
 
@@ -323,8 +340,8 @@ app.post("/api/checkout", async (req, res) => {
 
     res.json({ ok: true, url: session.url });
   } catch (error) {
-    console.error("[stripe] checkout:", error);
-    jsonError(res, 502, "checkout_failed", "No se pudo abrir Stripe Checkout. Inténtalo de nuevo.");
+    console.error("[stripe] checkout:", error?.type || error?.code || "", error?.message || error);
+    jsonError(res, 502, "checkout_failed", checkoutErrorMessage(error));
   }
 });
 
