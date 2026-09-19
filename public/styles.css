@@ -716,6 +716,373 @@ textarea:focus {
   color: #93c5fd;
 }
 
+.live-demos {
+  display: grid;
+  gap: 2.5rem 1.6rem;
+  margin: 0 auto 2.8rem;
+}
+
+.tira-demo {
+  max-width: 22rem;
+  margin: 0 auto;
+  padding: 0 0.7rem;
+}
+
+.phone-live {
+  position: relative;
+  width: min(100%, 19.5rem);
+  margin: 0 auto;
+}
+
+.phone-live__chassis {
+  position: relative;
+  padding: 0.52rem;
+  background:
+    linear-gradient(145deg, #5c5c60 0%, #1f1f21 28%, #111113 62%, #2c2c2e 100%);
+  border-radius: 2.85rem;
+  box-shadow:
+    0 0 0 1px #0b0b0c,
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 28px 60px rgba(15, 23, 42, 0.28);
+}
+
+.phone-live__screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2.32rem;
+  background: #000;
+  aspect-ratio: 9 / 19.4;
+}
+
+.phone-live__screen > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tira-demo__live {
+  object-position: center 28%;
+  transform: scale(1.12);
+  transform-origin: center 30%;
+}
+
+.video-demo .phone-live__screen,
+.landing-demo .phone-live__screen {
+  aspect-ratio: 9 / 16.15;
+}
+
+.video-demo__frame,
+.landing-demo__frame {
+  object-position: center top;
+}
+
+.phone-live__island {
+  position: absolute;
+  top: 0.72rem;
+  left: 50%;
+  z-index: 6;
+  width: 6.1rem;
+  height: 1.68rem;
+  transform: translateX(-50%);
+  background: #050505;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.phone-live__island::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0.72rem;
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle at 35% 35%, #3b82f6 0 18%, #0f172a 42%, #020617 100%);
+}
+
+.phone-live__side {
+  position: absolute;
+  background: linear-gradient(180deg, #6b6b70, #2a2a2c);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.phone-live__side--silent {
+  left: -0.18rem;
+  top: 7.1rem;
+  width: 0.22rem;
+  height: 1.35rem;
+}
+
+.phone-live__side--vol-up {
+  left: -0.18rem;
+  top: 9.2rem;
+  width: 0.22rem;
+  height: 2.35rem;
+}
+
+.phone-live__side--vol-down {
+  left: -0.18rem;
+  top: 11.9rem;
+  width: 0.22rem;
+  height: 2.35rem;
+}
+
+.phone-live__side--power {
+  right: -0.18rem;
+  top: 10.1rem;
+  width: 0.22rem;
+  height: 3.5rem;
+}
+
+.phone-live__ui {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.phone-live__live {
+  position: absolute;
+  top: 3.05rem;
+  left: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.48rem;
+  border-radius: 0.28rem;
+  background: var(--live);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.phone-live__home,
+.phone-live__screen > .phone-live__home {
+  position: absolute;
+  left: 50%;
+  bottom: 0.55rem;
+  z-index: 6;
+  width: 7.2rem;
+  height: 0.32rem;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+}
+
+.tira-demo__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 42%;
+  z-index: 3;
+  height: 4.7rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: rgba(8, 12, 22, 0.38);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  border-block: 1px solid rgba(212, 175, 55, 0.45);
+  pointer-events: none;
+}
+
+.tira-demo__track {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-inline: 0.35rem;
+  width: max-content;
+  animation: tira-scroll 16s linear infinite;
+  will-change: transform;
+}
+
+.tira-demo__track img {
+  display: block;
+  height: 4.2rem;
+  width: auto;
+  max-width: none;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+
+.tira-demo figcaption {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.tira-demo figcaption strong {
+  color: var(--ink);
+}
+
+.video-demo__chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.video-demo__play {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 3.5rem;
+  height: 3.5rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.42);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.video-demo__play::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 0.55rem 0 0.55rem 0.9rem;
+  border-color: transparent transparent transparent #fff;
+}
+
+.video-demo__progress {
+  position: absolute;
+  left: 1.05rem;
+  right: 1.05rem;
+  bottom: 1.4rem;
+  height: 0.2rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.video-demo__progress > span {
+  display: block;
+  height: 100%;
+  width: 32%;
+  border-radius: inherit;
+  background: #fff;
+  animation: video-progress 14s linear infinite;
+}
+
+.phone-live--mini .video-demo__play {
+  width: 1.7rem;
+  height: 1.7rem;
+  top: 40%;
+  border-width: 1.5px;
+}
+
+.phone-live--mini .video-demo__play::after {
+  border-width: 0.28rem 0 0.28rem 0.46rem;
+}
+
+.phone-live--mini .video-demo__progress {
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.82rem;
+  height: 0.12rem;
+}
+
+.tira-mini {
+  margin: 0 auto 1rem;
+  max-width: 11.5rem;
+}
+
+.phone-live--mini {
+  width: 100%;
+}
+
+.phone-live--mini .phone-live__chassis {
+  padding: 0.32rem;
+  border-radius: 1.55rem;
+}
+
+.phone-live--mini .phone-live__screen {
+  border-radius: 1.25rem;
+  aspect-ratio: 9 / 17.5;
+}
+
+.phone-live--mini .phone-live__island {
+  top: 0.38rem;
+  width: 3.1rem;
+  height: 0.82rem;
+}
+
+.phone-live--mini .phone-live__island::after {
+  right: 0.38rem;
+  width: 0.34rem;
+  height: 0.34rem;
+}
+
+.phone-live--mini .phone-live__home {
+  width: 3.4rem;
+  height: 0.18rem;
+  bottom: 0.28rem;
+}
+
+.tira-mini__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 44%;
+  z-index: 3;
+  height: 2.05rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: rgba(8, 12, 22, 0.32);
+  border-block: 1px solid rgba(212, 175, 55, 0.4);
+  pointer-events: none;
+}
+
+.tira-mini__rail .tira-demo__track img {
+  height: 1.85rem;
+}
+
+@keyframes tira-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes video-ken {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes video-progress {
+  from {
+    width: 8%;
+  }
+  to {
+    width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tira-demo__track {
+    animation: none;
+    transform: translateX(-8%);
+  }
+
+  .video-demo__frame,
+  .video-demo__progress > span {
+    animation: none;
+  }
+}
+
 .services {
   display: grid;
   grid-template-columns: 1fr;
@@ -1067,6 +1434,16 @@ textarea:focus {
 }
 
 @media (min-width: 861px) {
+  .live-demos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 68rem;
+    gap: 1.6rem 1rem;
+  }
+
+  .live-demos .phone-live {
+    width: min(100%, 16.4rem);
+  }
+
   .services {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;

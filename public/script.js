@@ -88,6 +88,57 @@ function renderCards() {
         </div>
         <p class="service-card__kicker">${escapeHtml(service.kicker)}</p>
         <h3>${escapeHtml(service.name)}</h3>
+        ${
+          service.id === "tira"
+            ? `<div class="tira-mini" aria-hidden="true">
+                <div class="phone-live phone-live--mini">
+                  <div class="phone-live__chassis">
+                    <div class="phone-live__screen">
+                      <span class="phone-live__island"></span>
+                      <img class="tira-demo__live" src="./live-frame.png" alt="" />
+                      <div class="tira-mini__rail">
+                        <div class="tira-demo__track">
+                          <img src="./tira-banner.png?v=2" alt="" />
+                          <img src="./tira-banner.png?v=2" alt="" />
+                          <img src="./tira-banner.png?v=2" alt="" />
+                          <img src="./tira-banner.png?v=2" alt="" />
+                        </div>
+                      </div>
+                      <span class="phone-live__home"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>`
+            : service.id === "video"
+              ? `<div class="tira-mini" aria-hidden="true">
+                <div class="phone-live phone-live--mini">
+                  <div class="phone-live__chassis">
+                    <div class="phone-live__screen">
+                      <span class="phone-live__island"></span>
+                      <img class="video-demo__frame" src="./video-promo.png" alt="" />
+                      <div class="video-demo__chrome">
+                        <span class="video-demo__play"></span>
+                        <span class="video-demo__progress"><span></span></span>
+                      </div>
+                      <span class="phone-live__home"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>`
+              : service.id === "landing"
+              ? `<div class="tira-mini" aria-hidden="true">
+                <div class="phone-live phone-live--mini">
+                  <div class="phone-live__chassis">
+                    <div class="phone-live__screen">
+                      <span class="phone-live__island"></span>
+                      <img class="landing-demo__frame" src="./landing-promo.png" alt="" />
+                      <span class="phone-live__home"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>`
+              : ""
+        }
         <p>${escapeHtml(service.shortDescription)}</p>
         ${bundleMarkup(service.bundle)}
         ${listMarkup(service.features)}
